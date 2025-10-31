@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Movie Review Analyzer{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-black: #1a1a1a;
+            --secondary-black: #2d2d2d;
+            --accent-yellow: #fdb913;
+            --light-yellow: #ffd54f;
+            --bg-dark: #0f0f0f;
+            --text-light: #e0e0e0;
+            --text-muted: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-black);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        .header-section {
+            background-color: var(--bg-dark);
+            border-bottom: 2px solid var(--accent-yellow);
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+
+        .header-section h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+
+        .header-section p {
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* Card Styles */
+        .main-card {
+            background-color: var(--secondary-black);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid rgba(253, 185, 19, 0.1);
+        }
+
+        /* Form Styles */
+        .form-label {
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .form-control {
+            background-color: var(--primary-black);
+            border: 1px solid rgba(253, 185, 19, 0.2);
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .form-control:focus {
+            background-color: var(--primary-black);
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 0 0.2rem rgba(253, 185, 19, 0.15);
+            color: var(--text-light);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Button Styles */
+        .btn-primary-custom {
+            background-color: var(--accent-yellow);
+            color: var(--bg-dark);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--light-yellow);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(253, 185, 19, 0.3);
+        }
+
+        .btn-secondary-custom {
+            background-color: transparent;
+            color: var(--text-light);
+            border: 1px solid rgba(253, 185, 19, 0.3);
+            padding: 12px 30px;
+            font-weight: 500;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary-custom:hover {
+            background-color: rgba(253, 185, 19, 0.1);
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        /* Material Icons */
+        .material-icons {
+            vertical-align: middle;
+        }
+
+        /* Utility Classes */
+        .text-accent {
+            color: var(--accent-yellow);
+        }
+
+        .border-accent {
+            border-color: var(--accent-yellow) !important;
+        }
+
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-section h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-section">
+        <div class="container">
+            <div class="text-center">
+                {% block header %}
+                <h1>Movie Review Analyzer</h1>
+                <p class="mb-0">AI-Powered Sentiment Analysis</p>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

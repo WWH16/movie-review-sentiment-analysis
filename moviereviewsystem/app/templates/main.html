@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Movie Review Sentiment Analysis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-card {
+        background-color: rgba(253, 185, 19, 0.05);
+        border: 1px solid rgba(253, 185, 19, 0.2);
+        border-radius: 4px;
+    }
+
+    .sentiment-badge {
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sentiment-badge.positive {
+        background-color: var(--accent-yellow);
+        color: var(--bg-dark);
+    }
+
+    .sentiment-badge.negative {
+        background-color: #6c757d;
+        color: #ffffff;
+    }
+
+    .sentiment-badge.neutral {
+        background-color: rgba(253, 185, 19, 0.3);
+        color: var(--text-light);
+    }
+
+    .progress {
+        height: 10px;
+        background-color: rgba(253, 185, 19, 0.1);
+        border-radius: 5px;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--accent-yellow), var(--light-yellow));
+        transition: width 1s ease;
+    }
+
+    .review-display {
+        background-color: var(--primary-black);
+        border-left: 3px solid var(--accent-yellow);
+        padding: 20px;
+        border-radius: 4px;
+    }
+
+    .review-display p {
+        color: var(--text-muted);
+        line-height: 1.7;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+
+    .empty-state .material-icons {
+        font-size: 64px;
+        color: rgba(253, 185, 19, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="main-card p-4 p-md-5">
+            <!-- Input Section -->
+            <div class="mb-4">
+                <label for="reviewInput" class="form-label">Enter Movie Review</label>
+                <textarea
+                    class="form-control"
+                    id="reviewInput"
+                    rows="6"
+                    placeholder="Type or paste your movie review here... e.g., 'This film was absolutely brilliant! The cinematography was stunning and the performances were outstanding.'"
+                ></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-3 mb-4 flex-wrap">
+                <button class="btn btn-primary-custom flex-grow-1" onclick="analyzeReview()">
+                    <span class="material-icons me-2" style="font-size: 20px;">psychology</span>
+                    Analyze Sentiment
+                </button>
+                <button class="btn btn-secondary-custom" onclick="clearReview()">
+                    <span class="material-icons" style="font-size: 20px;">refresh</span>
+                </button>
+            </div>
+
+            <!-- Result Section -->
+            <div id="resultSection" style="display: none;">
+                <div class="result-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                        <h5 class="mb-0 fw-semibold text-light">Sentiment Analysis Result</h5>
+                        <div class="sentiment-badge positive" id="sentimentBadge">
+                            <span class="material-icons" style="font-size: 18px;">sentiment_satisfied_alt</span>
+                            <span id="sentimentText">Positive</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Confidence Score</span>
+                            <span class="fw-semibold text-accent" id="confidenceValue">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" id="progressFill" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="review-display">
+                        <p class="mb-0" id="reviewText"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState">
+                <span class="material-icons mb-3">rate_review</span>
+                <p class="mb-0">Enter a movie review above to analyze its sentiment</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function analyzeReview() {
+        const reviewInput = document.getElementById('reviewInput');
+        const reviewText = reviewInput.value.trim();
+
+        if (!reviewText) {
+            alert('Please enter a movie review to analyze.');
+            return;
+        }
+
+        // Hide empty state and show results
+        document.getElementById('emptyState').style.display = 'none';
+        const resultSection = document.getElementById('resultSection');
+        resultSection.style.display = 'block';
+        resultSection.classList.add('fade-in');
+
+        // TODO: Replace with actual API call to Django backend
+        // Example:
+        // fetch('/api/analyze/', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'X-CSRFToken': getCookie('csrftoken')
+        //     },
+        //     body: JSON.stringify({ review: reviewText })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     displayResults(data, reviewText);
+        // });
+
+        // Simulate sentiment analysis (temporary)
+        const mockSentiment = generateMockSentiment(reviewText);
+        displayResults(mockSentiment, reviewText);
+    }
+
+    function generateMockSentiment(text) {
+        // Simple mock logic based on keywords (temporary until backend is ready)
+        const positiveWords = ['great', 'amazing', 'excellent', 'brilliant', 'outstanding', 'fantastic', 'loved', 'wonderful', 'stunning', 'perfect', 'best', 'masterpiece', 'incredible', 'superb'];
+        const negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'disappointing', 'worst', 'boring', 'waste', 'poor', 'dull', 'mediocre', 'weak', 'failed'];
+
+        const lowerText = text.toLowerCase();
+        let positiveCount = 0;
+        let negativeCount = 0;
+
+        positiveWords.forEach(word => {
+            if (lowerText.includes(word)) positiveCount++;
+        });
+
+        negativeWords.forEach(word => {
+            if (lowerText.includes(word)) negativeCount++;
+        });
+
+        let sentiment, confidence;
+
+        if (positiveCount > negativeCount) {
+            sentiment = 'positive';
+            confidence = Math.min(65 + (positiveCount * 8), 95);
+        } else if (negativeCount > positiveCount) {
+            sentiment = 'negative';
+            confidence = Math.min(65 + (negativeCount * 8), 95);
+        } else {
+            sentiment = 'neutral';
+            confidence = Math.floor(Math.random() * 25 + 55);
+        }
+
+        return { sentiment, confidence };
+    }
+
+    function displayResults(result, reviewText) {
+        const sentimentBadge = document.getElementById('sentimentBadge');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const progressFill = document.getElementById('progressFill');
+        const reviewDisplay = document.getElementById('reviewText');
+
+        // Update sentiment badge
+        sentimentBadge.className = `sentiment-badge ${result.sentiment}`;
+
+        // Update icon and text based on sentiment
+        let icon = 'sentiment_satisfied_alt';
+        let text = 'Positive';
+
+        if (result.sentiment === 'negative') {
+            icon = 'sentiment_dissatisfied';
+            text = 'Negative';
+        } else if (result.sentiment === 'neutral') {
+            icon = 'sentiment_neutral';
+            text = 'Neutral';
+        }
+
+        sentimentBadge.innerHTML = `
+            <span class="material-icons" style="font-size: 18px;">${icon}</span>
+            <span>${text}</span>
+        `;
+
+        // Update confidence
+        const roundedConfidence = Math.round(result.confidence);
+        confidenceValue.textContent = `${roundedConfidence}%`;
+
+        // Animate progress bar
+        setTimeout(() => {
+            progressFill.style.width = `${roundedConfidence}%`;
+        }, 100);
+
+        // Display review text
+        reviewDisplay.textContent = reviewText;
+    }
+
+    function clearReview() {
+        document.getElementById('reviewInput').value = '';
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('progressFill').style.width = '0%';
+    }
+
+    // Helper function for CSRF token (needed for Django POST requests)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

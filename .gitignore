@@ -1,0 +1,4 @@
+.idea
+/moviereviewsystem/app/migrations
+__pycache__/
+/moviereviewsystem/db.sqlite3
