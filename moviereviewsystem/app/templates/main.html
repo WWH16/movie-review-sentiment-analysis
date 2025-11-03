@@ -1,134 +1,189 @@
+<!-- FILE: templates/main.html -->
+<!-- Replace your entire main.html file with this code -->
+
 {% extends "base.html" %}
 
 {% block title %}Movie Review Sentiment Analysis{% endblock %}
 
 {% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'poppins': ['Poppins', 'sans-serif'],
+                },
+                colors: {
+                    'primary-blue': '#1a73e8',
+                    'secondary-blue': '#4285f4',
+                    'light-blue': '#e8f0fe',
+                    'accent-blue': '#185abc',
+                }
+            }
+        }
+    }
+</script>
 <style>
-    .result-card {
-        background-color: rgba(253, 185, 19, 0.05);
-        border: 1px solid rgba(253, 185, 19, 0.2);
-        border-radius: 4px;
+    body {
+        font-family: 'Poppins', sans-serif;
     }
 
-    .sentiment-badge {
-        padding: 8px 20px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+    .backdrop-overlay {
+        background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.98) 50%,
+            rgba(255, 255, 255, 1) 100%);
     }
 
-    .sentiment-badge.positive {
-        background-color: var(--accent-yellow);
-        color: var(--bg-dark);
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
     }
 
-    .sentiment-badge.negative {
-        background-color: #6c757d;
-        color: #ffffff;
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .sentiment-badge.neutral {
-        background-color: rgba(253, 185, 19, 0.3);
-        color: var(--text-light);
-    }
-
-    .progress {
-        height: 10px;
-        background-color: rgba(253, 185, 19, 0.1);
-        border-radius: 5px;
-    }
-
-    .progress-bar {
-        background: linear-gradient(90deg, var(--accent-yellow), var(--light-yellow));
-        transition: width 1s ease;
-    }
-
-    .review-display {
-        background-color: var(--primary-black);
-        border-left: 3px solid var(--accent-yellow);
-        padding: 20px;
-        border-radius: 4px;
-    }
-
-    .review-display p {
-        color: var(--text-muted);
-        line-height: 1.7;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text-muted);
-    }
-
-    .empty-state .material-icons {
-        font-size: 64px;
-        color: rgba(253, 185, 19, 0.3);
+    .progress-bar-animated {
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="main-card p-4 p-md-5">
-            <!-- Input Section -->
-            <div class="mb-4">
-                <label for="reviewInput" class="form-label">Enter Movie Review</label>
+<!-- Hero Section with Backdrop -->
+<div class="relative bg-gradient-to-br from-primary-blue to-secondary-blue overflow-hidden">
+    <!-- Optional: Background pattern or image -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+    </div>
+
+    <div class="container mx-auto px-4 py-16 relative z-10">
+        <div class="max-w-4xl mx-auto text-center text-white">
+            <div class="flex justify-center mb-6">
+                <span class="material-icons text-7xl">psychology</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Sentiment Analysis</h1>
+            <p class="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto">
+                Analyze movie reviews using advanced AI to understand audience sentiment and emotions
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-5xl mx-auto">
+        <!-- Input Card -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8 mb-8">
+            <div class="mb-6">
+                <label for="reviewInput" class="block text-lg font-semibold text-gray-800 mb-3">
+                    <span class="material-icons align-middle mr-2 text-primary-blue">rate_review</span>
+                    Enter Movie Review
+                </label>
                 <textarea
-                    class="form-control"
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-blue focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none text-gray-700"
                     id="reviewInput"
                     rows="6"
-                    placeholder="Type or paste your movie review here... e.g., 'This film was absolutely brilliant! The cinematography was stunning and the performances were outstanding.'"
+                    placeholder="Type or paste your movie review here...
+
+For example: 'This film was absolutely brilliant! The cinematography was stunning and the performances were outstanding. A true masterpiece that kept me engaged from start to finish.'"
                 ></textarea>
+                <p class="text-sm text-gray-500 mt-2">
+                    <span class="material-icons text-xs align-middle">info</span>
+                    Tip: Longer reviews provide more accurate sentiment analysis
+                </p>
             </div>
 
-            <!-- Buttons -->
-            <div class="d-flex gap-3 mb-4 flex-wrap">
-                <button class="btn btn-primary-custom flex-grow-1" onclick="analyzeReview()">
-                    <span class="material-icons me-2" style="font-size: 20px;">psychology</span>
+            <!-- Action Buttons -->
+            <div class="flex gap-3 flex-wrap">
+                <button
+                    class="flex-1 min-w-[200px] bg-primary-blue hover:bg-accent-blue text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    onclick="analyzeReview()"
+                >
+                    <span class="material-icons">psychology</span>
                     Analyze Sentiment
                 </button>
-                <button class="btn btn-secondary-custom" onclick="clearReview()">
-                    <span class="material-icons" style="font-size: 20px;">refresh</span>
+                <button
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                    onclick="clearReview()"
+                >
+                    <span class="material-icons">refresh</span>
+                    Clear
                 </button>
             </div>
+        </div>
 
-            <!-- Result Section -->
-            <div id="resultSection" style="display: none;">
-                <div class="result-card p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                        <h5 class="mb-0 fw-semibold text-light">Sentiment Analysis Result</h5>
-                        <div class="sentiment-badge positive" id="sentimentBadge">
-                            <span class="material-icons" style="font-size: 18px;">sentiment_satisfied_alt</span>
-                            <span id="sentimentText">Positive</span>
-                        </div>
+        <!-- Results Section -->
+        <div id="resultSection" class="hidden">
+            <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg border border-blue-100 p-6 md:p-8">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        <span class="material-icons text-primary-blue">analytics</span>
+                        Analysis Results
+                    </h2>
+                    <div id="sentimentBadge" class="sentiment-badge-positive">
+                        <span class="material-icons text-xl">sentiment_satisfied_alt</span>
+                        <span id="sentimentText" class="font-semibold">Positive</span>
                     </div>
+                </div>
 
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">Confidence Score</span>
-                            <span class="fw-semibold text-accent" id="confidenceValue">0%</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar" id="progressFill" role="progressbar" style="width: 0%"></div>
-                        </div>
+                <!-- Confidence Score -->
+                <div class="mb-8">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-medium text-gray-600">Confidence Score</span>
+                        <span id="confidenceValue" class="text-2xl font-bold text-primary-blue">0%</span>
                     </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div
+                            id="progressFill"
+                            class="bg-gradient-to-r from-primary-blue to-secondary-blue h-full rounded-full progress-bar-animated"
+                            style="width: 0%"
+                        ></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Higher confidence indicates stronger sentiment detection
+                    </p>
+                </div>
 
-                    <div class="review-display">
-                        <p class="mb-0" id="reviewText"></p>
+                <!-- Review Display -->
+                <div class="bg-white border-l-4 border-primary-blue rounded-lg p-6 shadow-sm">
+                    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">
+                        Analyzed Review
+                    </h3>
+                    <p id="reviewText" class="text-gray-700 leading-relaxed text-base"></p>
+                </div>
+
+                <!-- Sentiment Breakdown (Optional Enhancement) -->
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-100">
+                        <span class="material-icons text-green-500 text-3xl">sentiment_very_satisfied</span>
+                        <p class="text-sm text-gray-600 mt-2">Positive Indicators</p>
+                        <p id="positiveCount" class="text-xl font-bold text-green-600">-</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-100">
+                        <span class="material-icons text-gray-500 text-3xl">sentiment_neutral</span>
+                        <p class="text-sm text-gray-600 mt-2">Neutral Indicators</p>
+                        <p id="neutralCount" class="text-xl font-bold text-gray-600">-</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-100">
+                        <span class="material-icons text-red-500 text-3xl">sentiment_very_dissatisfied</span>
+                        <p class="text-sm text-gray-600 mt-2">Negative Indicators</p>
+                        <p id="negativeCount" class="text-xl font-bold text-red-600">-</p>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Empty State -->
-            <div class="empty-state" id="emptyState">
-                <span class="material-icons mb-3">rate_review</span>
-                <p class="mb-0">Enter a movie review above to analyze its sentiment</p>
-            </div>
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-16">
+            <span class="material-icons text-gray-300 mb-4" style="font-size: 80px;">rate_review</span>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Ready to Analyze</h3>
+            <p class="text-gray-500 max-w-md mx-auto">
+                Enter a movie review above and click "Analyze Sentiment" to get started with AI-powered sentiment analysis
+            </p>
         </div>
     </div>
 </div>
@@ -146,13 +201,12 @@
         }
 
         // Hide empty state and show results
-        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('emptyState').classList.add('hidden');
         const resultSection = document.getElementById('resultSection');
-        resultSection.style.display = 'block';
+        resultSection.classList.remove('hidden');
         resultSection.classList.add('fade-in');
 
         // TODO: Replace with actual API call to Django backend
-        // Example:
         // fetch('/api/analyze/', {
         //     method: 'POST',
         //     headers: {
@@ -172,20 +226,23 @@
     }
 
     function generateMockSentiment(text) {
-        // Simple mock logic based on keywords (temporary until backend is ready)
-        const positiveWords = ['great', 'amazing', 'excellent', 'brilliant', 'outstanding', 'fantastic', 'loved', 'wonderful', 'stunning', 'perfect', 'best', 'masterpiece', 'incredible', 'superb'];
-        const negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'disappointing', 'worst', 'boring', 'waste', 'poor', 'dull', 'mediocre', 'weak', 'failed'];
+        const positiveWords = ['great', 'amazing', 'excellent', 'brilliant', 'outstanding', 'fantastic', 'loved', 'wonderful', 'stunning', 'perfect', 'best', 'masterpiece', 'incredible', 'superb', 'beautiful', 'impressive', 'captivating'];
+        const negativeWords = ['bad', 'terrible', 'awful', 'horrible', 'disappointing', 'worst', 'boring', 'waste', 'poor', 'dull', 'mediocre', 'weak', 'failed', 'pointless', 'tedious'];
 
         const lowerText = text.toLowerCase();
         let positiveCount = 0;
         let negativeCount = 0;
 
         positiveWords.forEach(word => {
-            if (lowerText.includes(word)) positiveCount++;
+            const regex = new RegExp('\\b' + word + '\\b', 'gi');
+            const matches = lowerText.match(regex);
+            if (matches) positiveCount += matches.length;
         });
 
         negativeWords.forEach(word => {
-            if (lowerText.includes(word)) negativeCount++;
+            const regex = new RegExp('\\b' + word + '\\b', 'gi');
+            const matches = lowerText.match(regex);
+            if (matches) negativeCount += matches.length;
         });
 
         let sentiment, confidence;
@@ -198,10 +255,16 @@
             confidence = Math.min(65 + (negativeCount * 8), 95);
         } else {
             sentiment = 'neutral';
-            confidence = Math.floor(Math.random() * 25 + 55);
+            confidence = Math.floor(Math.random() * 15 + 55);
         }
 
-        return { sentiment, confidence };
+        return {
+            sentiment,
+            confidence,
+            positiveCount,
+            negativeCount,
+            neutralCount: text.split(' ').length - positiveCount - negativeCount
+        };
     }
 
     function displayResults(result, reviewText) {
@@ -210,23 +273,28 @@
         const progressFill = document.getElementById('progressFill');
         const reviewDisplay = document.getElementById('reviewText');
 
-        // Update sentiment badge
-        sentimentBadge.className = `sentiment-badge ${result.sentiment}`;
-
-        // Update icon and text based on sentiment
+        // Update sentiment badge styling and content
+        let badgeClasses = 'px-6 py-3 rounded-full font-semibold text-sm flex items-center gap-2 shadow-md ';
         let icon = 'sentiment_satisfied_alt';
         let text = 'Positive';
 
-        if (result.sentiment === 'negative') {
+        if (result.sentiment === 'positive') {
+            badgeClasses += 'bg-green-100 text-green-700 border border-green-200';
+            icon = 'sentiment_satisfied_alt';
+            text = 'Positive';
+        } else if (result.sentiment === 'negative') {
+            badgeClasses += 'bg-red-100 text-red-700 border border-red-200';
             icon = 'sentiment_dissatisfied';
             text = 'Negative';
-        } else if (result.sentiment === 'neutral') {
+        } else {
+            badgeClasses += 'bg-gray-100 text-gray-700 border border-gray-200';
             icon = 'sentiment_neutral';
             text = 'Neutral';
         }
 
+        sentimentBadge.className = badgeClasses;
         sentimentBadge.innerHTML = `
-            <span class="material-icons" style="font-size: 18px;">${icon}</span>
+            <span class="material-icons text-xl">${icon}</span>
             <span>${text}</span>
         `;
 
@@ -241,12 +309,17 @@
 
         // Display review text
         reviewDisplay.textContent = reviewText;
+
+        // Update breakdown counts
+        document.getElementById('positiveCount').textContent = result.positiveCount || 0;
+        document.getElementById('negativeCount').textContent = result.negativeCount || 0;
+        document.getElementById('neutralCount').textContent = result.neutralCount || 0;
     }
 
     function clearReview() {
         document.getElementById('reviewInput').value = '';
-        document.getElementById('resultSection').style.display = 'none';
-        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('resultSection').classList.add('hidden');
+        document.getElementById('emptyState').classList.remove('hidden');
         document.getElementById('progressFill').style.width = '0%';
     }
 
