@@ -14,6 +14,8 @@ class Movie(models.Model):
     duration = models.CharField(max_length=50, blank=True, null=True)
     listed_in = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    poster_url = models.URLField(max_length=500, blank=True, null=True)  # NEW FIELD
+    backdrop_url = models.URLField(max_length=500, blank=True, null=True)  # NEW
 
     def __str__(self):
         return self.title
