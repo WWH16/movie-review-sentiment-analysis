@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MovieReview Analyzer{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md border-b border-gray-200">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="{% url 'main' %}" class="flex items-center gap-2 text-xl font-bold text-primary-blue">
+                <span class="material-icons">movie</span>
+                MovieReview
+            </a>
+            <div class="flex gap-6">
+                {% if user.is_authenticated %}
+                    <span class="text-gray-700">Welcome, {{ user.username }}</span>
+                    <a href="{% url 'authentication:logout' %}" class="text-gray-700 hover:text-primary-blue">Logout</a>
+                {% else %}
+                    <a href="{% url 'authentication:login' %}" class="text-gray-700 hover:text-primary-blue">Login</a>
+                    <a href="{% url 'authentication:signup' %}" class="text-gray-700 hover:text-primary-blue">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

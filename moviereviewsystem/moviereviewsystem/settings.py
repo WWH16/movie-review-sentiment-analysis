@@ -31,6 +31,7 @@ INSTALLED_APPS = [
 
     # Your future apps:
     'app',
+    'authentication',
     # 'movies',
     # 'users',
 ]
@@ -48,6 +49,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Login/Logout URLs
+LOGIN_URL = 'authentication:login'
+LOGIN_REDIRECT_URL = 'main'
+LOGOUT_REDIRECT_URL = 'login'
 # ---------------------------
 # 🚀 URL / WSGI
 # ---------------------------
