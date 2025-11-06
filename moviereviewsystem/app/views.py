@@ -1,8 +1,123 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.conf import settings
 from .models import Movie
+import os
+import joblib
+import pandas as pd
+import json
+import re
+import string
+import nltk
+from nltk.corpus import stopwords
+
+# Ensure NLTK stopwords are available
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
+
+STOP_WORDS = set(stopwords.words("english"))
+
+
+def clean_text_manual(text):
+    """
+    Manual text cleaning function to show preprocessing
+    """
+    if not text:
+        return ""
+
+    # Apply cleaning steps
+    text = re.sub("<.*?>", "", text)  # remove HTML tags
+    text = re.sub("[%s]" % re.escape(string.punctuation), "", text)  # remove punctuation
+    text = re.sub("\d+", "", text)  # remove numbers
+    text = text.lower()  # lowercase
+
+    # Remove stopwords
+    text = " ".join([word for word in text.split() if word not in STOP_WORDS])
+    return text
+
+
+# Load the model once when the server starts
+MODEL_PATH = os.path.join(settings.BASE_DIR, 'model', 'sentiment_classification_pipeline_new.pkl')
+
+try:
+    sentiment_pipeline = joblib.load(MODEL_PATH)
+    MODEL_LOADED = True
+    print("✅ Sentiment model loaded successfully!")
+except Exception as e:
+    sentiment_pipeline = None
+    MODEL_LOADED = False
+    print(f"❌ Error loading sentiment model: {e}")
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def analyze_sentiment(request):
+    """
+    API endpoint to analyze sentiment of a movie review
+    """
+    if not MODEL_LOADED:
+        return JsonResponse({
+            'error': 'Sentiment model not available',
+            'sentiment': 'unknown',
+            'confidence': 0
+        }, status=503)
+
+    try:
+        # Parse JSON data
+        data = json.loads(request.body)
+        review_text = data.get('review', '').strip()
+
+        if not review_text:
+            return JsonResponse({
+                'error': 'No review text provided',
+                'sentiment': 'unknown',
+                'confidence': 0
+            }, status=400)
+
+        # Clean the text manually (to show in results)
+        cleaned_text = clean_text_manual(review_text)
+
+        # Create a pandas Series for the input (as expected by your pipeline)
+        review_series = pd.Series([review_text])
+
+        # Get prediction (0 = negative, 1 = positive)
+        prediction = sentiment_pipeline.predict(review_series)[0]
+
+        # Get prediction probabilities for confidence score
+        probabilities = sentiment_pipeline.predict_proba(review_series)[0]
+        confidence = max(probabilities) * 100  # Convert to percentage
+
+        # Convert to sentiment labels
+        sentiment = 'positive' if prediction == 1 else 'negative'
+
+        return JsonResponse({
+            'sentiment': sentiment,
+            'confidence': round(confidence, 2),
+            'prediction': int(prediction),
+            'cleaned_text': cleaned_text,  # Send cleaned text to frontend
+            'original_text': review_text,  # Send original text too
+            'probabilities': {
+                'negative': round(probabilities[0] * 100, 2),
+                'positive': round(probabilities[1] * 100, 2)
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Analysis failed: {str(e)}',
+            'sentiment': 'unknown',
+            'confidence': 0
+        }, status=500)
+
+
+def main(request):
+    """Homepage with sentiment analysis"""
+    return render(request, 'main.html')
 
 
 def movies(request):
@@ -38,6 +153,17 @@ def movies(request):
     }
 
     return render(request, 'movies.html', context)
+
+
+def movie_detail(request, movie_id):
+    """Movie detail view"""
+    movie = get_object_or_404(Movie, id=movie_id)
+
+    context = {
+        'movie': movie,
+    }
+
+    return render(request, 'review.html', context)
 
 
 def movie_search_api(request):
@@ -76,11 +202,6 @@ def movie_search_api(request):
         return JsonResponse({'error': 'Search failed'}, status=500)
 
 
-def main(request):
-    """Homepage"""
-    return render(request, 'main.html')
-
-
 def movie_list(request):
     """API endpoint for all movies"""
     try:
@@ -91,47 +212,3 @@ def movie_list(request):
         return JsonResponse(list(movies), safe=False)
     except Exception as e:
         return JsonResponse({'error': 'Failed to fetch movies'}, status=500)
-
-
-# Movie detail view
-def movie_detail(request, movie_id):
-    movie = get_object_or_404(Movie, id=movie_id)
-
-    context = {
-        'movie': movie,
-    }
-
-    return render(request, 'review.html', context)
-
-
-# Update your existing movies view to remove search functionality
-def movies(request):
-    type_filter = request.GET.get('type', '').strip()
-
-    # Get all movies from database
-    movies_list = Movie.objects.all()
-
-    # Apply type filter (Movie/TV Show)
-    if type_filter and type_filter != 'all':
-        type_mapping = {
-            'movie': 'Movie',
-            'tv': 'TV Show'
-        }
-        db_type = type_mapping.get(type_filter, type_filter)
-        movies_list = movies_list.filter(type__iexact=db_type)
-
-    # Order by release year (newest first) and then by title
-    movies_list = movies_list.order_by('-release_year', 'title')
-
-    # Pagination
-    paginator = Paginator(movies_list, 24)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'page_obj': page_obj,
-        'type_filter': type_filter,
-        'total_movies': movies_list.count(),
-    }
-
-    return render(request, 'movies.html', context)

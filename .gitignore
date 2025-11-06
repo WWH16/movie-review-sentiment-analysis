@@ -2,3 +2,4 @@
 /moviereviewsystem/app/migrations
 __pycache__/
 /moviereviewsystem/db.sqlite3
+/moviereviewsystem/model
