@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse
-from django.db.models import Q
+from django.shortcuts import render, get_object_or_404
 from .models import Movie
 
 
@@ -91,3 +91,47 @@ def movie_list(request):
         return JsonResponse(list(movies), safe=False)
     except Exception as e:
         return JsonResponse({'error': 'Failed to fetch movies'}, status=500)
+
+
+# Movie detail view
+def movie_detail(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+
+    context = {
+        'movie': movie,
+    }
+
+    return render(request, 'review.html', context)
+
+
+# Update your existing movies view to remove search functionality
+def movies(request):
+    type_filter = request.GET.get('type', '').strip()
+
+    # Get all movies from database
+    movies_list = Movie.objects.all()
+
+    # Apply type filter (Movie/TV Show)
+    if type_filter and type_filter != 'all':
+        type_mapping = {
+            'movie': 'Movie',
+            'tv': 'TV Show'
+        }
+        db_type = type_mapping.get(type_filter, type_filter)
+        movies_list = movies_list.filter(type__iexact=db_type)
+
+    # Order by release year (newest first) and then by title
+    movies_list = movies_list.order_by('-release_year', 'title')
+
+    # Pagination
+    paginator = Paginator(movies_list, 24)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'type_filter': type_filter,
+        'total_movies': movies_list.count(),
+    }
+
+    return render(request, 'movies.html', context)

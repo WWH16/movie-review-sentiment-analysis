@@ -1,0 +1,175 @@
+<!-- FILE: templates/review.html or whatever your movie detail template is called -->
+
+{% extends "base.html" %}
+
+{% block title %}{{ movie.title }}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    body { font-family: 'Poppins', sans-serif; }
+
+    .backdrop-overlay {
+        background: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.7) 0%,
+            rgba(0, 0, 0, 0.5) 50%,
+            rgba(0, 0, 0, 0.3) 100%
+        );
+    }
+
+    .movie-backdrop {
+        background-image: url('{% if movie.backdrop_url %}{{ movie.backdrop_url }}{% else %}/static/default-backdrop.jpg{% endif %}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Backdrop Hero Section -->
+<div class="movie-backdrop min-h-[70vh] relative">
+    <div class="backdrop-overlay absolute inset-0"></div>
+
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="max-w-6xl mx-auto pt-20 pb-16">
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+                <!-- Movie Poster -->
+                <div class="flex-shrink-0">
+                    <div class="w-64 h-96 rounded-xl overflow-hidden shadow-2xl">
+                        {% if movie.poster_url %}
+                            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full bg-gradient-to-br from-gray-800 to-gray-600 flex items-center justify-center">
+                                <span class="material-icons text-white text-6xl">movie</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Movie Details -->
+                <div class="flex-1 text-white">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ movie.title }}</h1>
+
+                    <!-- Rating and Type -->
+                    <div class="flex items-center gap-4 mb-6">
+                        {% if movie.rating %}
+                        <div class="flex items-center gap-2 bg-yellow-500 bg-opacity-20 px-3 py-1 rounded-full">
+                            <span class="material-icons text-yellow-400 text-sm">star</span>
+                            <span class="font-semibold">{{ movie.rating }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="flex items-center gap-2 bg-blue-500 bg-opacity-20 px-3 py-1 rounded-full">
+                            <span class="material-icons text-blue-300 text-sm">tv</span>
+                            <span class="font-semibold">{{ movie.type }}</span>
+                        </div>
+
+                        {% if movie.release_year %}
+                        <div class="flex items-center gap-2 bg-green-500 bg-opacity-20 px-3 py-1 rounded-full">
+                            <span class="material-icons text-green-300 text-sm">calendar_today</span>
+                            <span class="font-semibold">{{ movie.release_year }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    {% if movie.description %}
+                    <div class="mb-6">
+                        <p class="text-lg text-gray-200 leading-relaxed">{{ movie.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Additional Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        {% if movie.director %}
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-300 mb-2">DIRECTOR</h3>
+                            <p class="text-white">{{ movie.director }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if movie.cast %}
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-300 mb-2">CAST</h3>
+                            <p class="text-white">{{ movie.cast|truncatewords:20 }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if movie.listed_in %}
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-300 mb-2">GENRES</h3>
+                            <p class="text-white">{{ movie.listed_in }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if movie.duration %}
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-300 mb-2">DURATION</h3>
+                            <p class="text-white">{{ movie.duration }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                            <span class="material-icons">play_arrow</span>
+                            Watch Now
+                        </button>
+                        <button class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                            <span class="material-icons">bookmark</span>
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Content Section -->
+<div class="bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8">More Details</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    {% if movie.country %}
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-500 mb-2">COUNTRY</h3>
+                        <p class="text-gray-900">{{ movie.country }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if movie.date_added %}
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-500 mb-2">DATE ADDED</h3>
+                        <p class="text-gray-900">{{ movie.date_added }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    {% if movie.listed_in %}
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-500 mb-2">CATEGORIES</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for category in movie.listed_in.split|slice:":5" %}
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {{ category }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
