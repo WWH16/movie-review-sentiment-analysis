@@ -1,5 +1,4 @@
 <!-- FILE: templates/movies.html -->
-<!-- Replace your entire movies.html file with this code -->
 
 {% extends "base.html" %}
 
@@ -21,15 +20,11 @@
 <style>
     body { font-family: 'Poppins', sans-serif; }
 
-    @keyframes shimmer {
-        0% { background-position: -1000px 0; }
-        100% { background-position: 1000px 0; }
-    }
-
-    .skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 1000px 100%;
-        animation: shimmer 2s infinite;
+    .search-dropdown {
+        max-height: 400px;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
     }
 </style>
 {% endblock %}
@@ -40,209 +35,302 @@
     <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto text-center">
             <h1 class="text-4xl md:text-5xl font-bold mb-4">Browse Movies & Series</h1>
-            <p class="text-lg text-blue-100">Discover thousands of movies and TV shows</p>
+            <p class="text-lg text-blue-100">Discover thousands of movies and TV shows from our database</p>
         </div>
     </div>
 </div>
 
 <!-- Search Section -->
-<div class="bg-white border-b border-gray-200 py-6 sticky top-0 z-10 shadow-sm">
+<div class="bg-white border-b border-gray-200 py-6 sticky top-0 z-20 shadow-sm">
     <div class="container mx-auto px-4">
-        <div class="max-w-2xl mx-auto relative">
-            <input
-                type="text"
-                id="searchInput"
-                class="w-full px-6 py-4 pr-12 border-2 border-gray-300 rounded-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-gray-700"
-                placeholder="Search movies, series, actors..."
-                onkeyup="filterMovies()"
-            >
-            <span class="material-icons absolute right-5 top-1/2 -translate-y-1/2 text-blue-500">search</span>
+        <div class="max-w-2xl mx-auto">
+            <!-- Search Input -->
+            <div class="relative">
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="w-full px-6 py-4 pr-12 border-2 border-gray-300 rounded-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-gray-700"
+                    placeholder="Search by movie title..."
+                    autocomplete="off"
+                >
+                <span class="material-icons absolute right-5 top-1/2 -translate-y-1/2 text-blue-500">search</span>
+
+                <!-- Search Dropdown -->
+                <div id="searchDropdown" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl search-dropdown hidden z-30">
+                    <div id="searchResults" class="py-2">
+                        <!-- Search results will be populated here via JavaScript -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Filter Tabs -->
+<!-- Filter Tabs & Results Info -->
 <div class="bg-gray-50 border-b border-gray-200">
     <div class="container mx-auto px-4 py-4">
+        <!-- Results Info -->
+        <div class="mb-4 text-center">
+            <p class="text-gray-600">
+                Showing <span class="font-bold text-blue-600">{{ total_movies }}</span> movies & series
+            </p>
+        </div>
+
+        <!-- Filter Tabs -->
         <div class="flex gap-3 overflow-x-auto pb-2">
-            <button class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all bg-blue-600 text-white" onclick="filterByCategory('all')">
+            <a href="?type=all"
+               class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all {% if not type_filter or type_filter == 'all' %}bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-blue-500{% endif %}">
                 All
-            </button>
-            <button class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all bg-white text-gray-700 border border-gray-300 hover:border-blue-500" onclick="filterByCategory('movies')">
+            </a>
+            <a href="?type=movie"
+               class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all {% if type_filter == 'movie' %}bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-blue-500{% endif %}">
                 Movies
-            </button>
-            <button class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all bg-white text-gray-700 border border-gray-300 hover:border-blue-500" onclick="filterByCategory('series')">
+            </a>
+            <a href="?type=tv"
+               class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all {% if type_filter == 'tv' %}bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-blue-500{% endif %}">
                 TV Series
-            </button>
-            <button class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all bg-white text-gray-700 border border-gray-300 hover:border-blue-500" onclick="filterByCategory('popular')">
-                Popular
-            </button>
-            <button class="filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all bg-white text-gray-700 border border-gray-300 hover:border-blue-500" onclick="filterByCategory('top-rated')">
-                Top Rated
-            </button>
+            </a>
         </div>
     </div>
 </div>
 
 <!-- Movies Grid -->
 <div class="container mx-auto px-4 py-8">
-    <!-- Loading State -->
-    <div id="loadingSpinner" class="text-center py-20">
-        <div class="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-gray-600 font-medium">Loading movies...</p>
-    </div>
+    {% if page_obj %}
+        <!-- Movie Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            {% for movie in page_obj %}
+                <div class="group cursor-pointer transform transition-all duration-300 hover:-translate-y-2" onclick="selectMovie('{{ movie.id }}')">
+                    <div class="relative rounded-lg overflow-hidden shadow-md group-hover:shadow-2xl transition-shadow">
+                        {% if movie.poster_url %}
+                            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full aspect-[2/3] object-cover" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="w-full aspect-[2/3] bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center p-4 hidden">
+                                <span class="material-icons text-gray-400 text-5xl mb-2">movie</span>
+                                <span class="text-gray-600 text-sm text-center font-medium">{{ movie.title }}</span>
+                            </div>
+                        {% else %}
+                            <div class="w-full aspect-[2/3] bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center p-4">
+                                <span class="material-icons text-gray-400 text-5xl mb-2">movie</span>
+                                <span class="text-gray-600 text-sm text-center font-medium">{{ movie.title }}</span>
+                            </div>
+                        {% endif %}
 
-    <!-- Movie Grid -->
-    <div id="movieGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6"></div>
+                        {% if movie.rating %}
+                            <div class="absolute top-2 right-2 bg-black bg-opacity-80 text-yellow-400 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                <span class="material-icons" style="font-size: 14px;">star</span>
+                                {{ movie.rating }}
+                            </div>
+                        {% endif %}
 
-    <!-- Empty State -->
-    <div id="emptyState" class="hidden text-center py-20">
-        <span class="material-icons text-gray-300 mb-4" style="font-size: 80px;">movie_filter</span>
-        <p class="text-gray-600 text-lg font-medium">No movies found</p>
-        <p class="text-gray-500 mt-2">Try adjusting your search or filters</p>
-    </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="absolute bottom-0 left-0 right-0 p-4">
+                                <h3 class="text-white font-semibold text-sm mb-1 line-clamp-2">{{ movie.title }}</h3>
+                                <p class="text-gray-300 text-xs mb-1">{{ movie.type|title }}</p>
+                                <p class="text-yellow-400 text-xs font-medium">{{ movie.release_year }}</p>
+                                {% if movie.listed_in %}
+                                    <p class="text-gray-400 text-xs mt-1 line-clamp-1">{{ movie.listed_in }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="mt-12 flex justify-center">
+                <nav class="flex items-center gap-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if type_filter and type_filter != 'all' %}&type={{ type_filter }}{% endif %}"
+                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% if type_filter and type_filter != 'all' %}&type={{ type_filter }}{% endif %}"
+                               class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if type_filter and type_filter != 'all' %}&type={{ type_filter }}{% endif %}"
+                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-20">
+            <span class="material-icons text-gray-300 mb-4" style="font-size: 80px;">movie_filter</span>
+            <p class="text-gray-600 text-lg font-medium">No movies found</p>
+            <p class="text-gray-500 mt-2">Try adjusting your filters</p>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    const TMDB_API_KEY = '7b995d3c6fd91a2284b4ad8cb390c7b8';
-    const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
-    let allMovies = [];
-    let currentFilter = 'all';
+// Replace the existing search JavaScript in movies.html with this debugged version
 
-    document.addEventListener('DOMContentLoaded', loadMovies);
+let searchTimeout;
 
-    async function loadMovies() {
-        try {
-            // TODO: Replace with Django API endpoint
-            // const response = await fetch('/api/movies/');
+// Handle search input with debugging
+function handleSearchInput() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    console.log('Search term:', searchTerm); // DEBUG
 
-            const response = await fetch(
-                `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
-            );
-            const data = await response.json();
-            allMovies = data.results;
+    clearTimeout(searchTimeout);
 
-            document.getElementById('loadingSpinner').classList.add('hidden');
-            displayMovies(allMovies);
-        } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('loadingSpinner').innerHTML =
-                '<p class="text-red-600 font-medium">Error loading movies</p>';
-        }
+    if (searchTerm === '') {
+        hideDropdown();
+        return;
     }
 
-    function displayMovies(movies) {
-        const grid = document.getElementById('movieGrid');
-        const empty = document.getElementById('emptyState');
+    // Reduced delay for faster response
+    searchTimeout = setTimeout(() => {
+        fetchSearchSuggestions(searchTerm);
+    }, 300);
+}
 
-        grid.innerHTML = '';
+// Fetch search suggestions
+async function fetchSearchSuggestions(searchTerm) {
+    console.log('Fetching suggestions for:', searchTerm); // DEBUG
 
-        if (movies.length === 0) {
-            grid.classList.add('hidden');
-            empty.classList.remove('hidden');
-            return;
+    try {
+        const url = `/api/movies/search/?q=${encodeURIComponent(searchTerm)}&limit=8`;
+        console.log('API URL:', url); // DEBUG
+
+        const response = await fetch(url);
+        console.log('Response status:', response.status); // DEBUG
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        grid.classList.remove('hidden');
-        empty.classList.add('hidden');
+        const results = await response.json();
+        console.log('Search results:', results); // DEBUG
 
-        movies.forEach(movie => {
-            const card = document.createElement('div');
-            card.className = 'group cursor-pointer transform transition-all duration-300 hover:-translate-y-2';
-            card.onclick = () => selectMovie(movie);
+        displaySearchSuggestions(results, searchTerm);
+    } catch (error) {
+        console.error('Search error:', error);
+        showErrorDropdown();
+    }
+}
 
-            const posterUrl = movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : null;
-            const year = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
-            const rating = movie.vote_average ? movie.vote_average.toFixed(1) : null;
+// Display search suggestions
+function displaySearchSuggestions(results, searchTerm) {
+    const dropdown = document.getElementById('searchDropdown');
+    const resultsContainer = document.getElementById('searchResults');
 
-            card.innerHTML = `
-                <div class="relative rounded-lg overflow-hidden shadow-md group-hover:shadow-2xl transition-shadow">
-                    ${posterUrl ?
-                        `<img src="${posterUrl}" alt="${movie.title}" class="w-full aspect-[2/3] object-cover" loading="lazy">` :
-                        `<div class="w-full aspect-[2/3] bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center p-4">
-                            <span class="material-icons text-gray-400 text-5xl mb-2">movie</span>
-                            <span class="text-gray-600 text-sm text-center font-medium">${movie.title}</span>
-                        </div>`
-                    }
+    console.log('Displaying results:', results.length); // DEBUG
 
-                    ${rating ? `
-                    <div class="absolute top-2 right-2 bg-black bg-opacity-80 text-yellow-400 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        <span class="material-icons" style="font-size: 14px;">star</span>
-                        ${rating}
-                    </div>` : ''}
+    if (!results || results.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="px-4 py-3 text-gray-500 text-center">
+                <span class="material-icons text-gray-400 mb-2" style="font-size: 40px;">search_off</span>
+                <p>No movies found for "${searchTerm}"</p>
+            </div>
+        `;
+        dropdown.classList.remove('hidden');
+        return;
+    }
 
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div class="absolute bottom-0 left-0 right-0 p-4">
-                            <h3 class="text-white font-semibold text-sm mb-1 line-clamp-2">${movie.title}</h3>
-                            <p class="text-yellow-400 text-xs font-medium">${year}</p>
-                        </div>
+    resultsContainer.innerHTML = results.map(movie => `
+        <div class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors group"
+             onclick="selectMovieFromSearch('${movie.id}')">
+            <div class="flex items-center gap-3">
+                ${movie.poster_url ? `
+                    <img src="${movie.poster_url}" alt="${movie.title}"
+                         class="w-12 h-16 object-cover rounded-lg flex-shrink-0"
+                         onerror="this.style.display='none'">
+                ` : `
+                    <div class="w-12 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-icons text-gray-400 text-lg">movie</span>
+                    </div>
+                `}
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-gray-900 text-sm group-hover:text-blue-600 truncate">${movie.title}</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs text-gray-500">${movie.release_year || 'N/A'}</span>
+                        <span class="text-xs text-gray-500">•</span>
+                        <span class="text-xs text-gray-500 capitalize">${movie.type || 'Movie'}</span>
+                        ${movie.rating ? `
+                            <span class="text-xs text-gray-500">•</span>
+                            <span class="text-xs text-yellow-600 font-medium">${movie.rating}</span>
+                        ` : ''}
                     </div>
                 </div>
-            `;
+                <span class="material-icons text-gray-400 group-hover:text-blue-500 text-lg">chevron_right</span>
+            </div>
+        </div>
+    `).join('');
 
-            grid.appendChild(card);
-        });
+    dropdown.classList.remove('hidden');
+    console.log('Dropdown displayed'); // DEBUG
+}
+
+// Show error state
+function showErrorDropdown() {
+    const dropdown = document.getElementById('searchDropdown');
+    const resultsContainer = document.getElementById('searchResults');
+
+    resultsContainer.innerHTML = `
+        <div class="px-4 py-3 text-gray-500 text-center">
+            <span class="material-icons text-red-400 mb-2" style="font-size: 40px;">error</span>
+            <p>Search failed. Please try again.</p>
+        </div>
+    `;
+    dropdown.classList.remove('hidden');
+}
+
+// Hide dropdown
+function hideDropdown() {
+    document.getElementById('searchDropdown').classList.add('hidden');
+}
+
+// Navigate to movie from search
+function selectMovieFromSearch(movieId) {
+    window.location.href = `/review/${movieId}/`;
+}
+
+// Navigate to movie from grid
+function selectMovie(movieId) {
+    window.location.href = `/review/${movieId}/`;
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('searchDropdown');
+
+    if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+        hideDropdown();
     }
+});
 
-    function selectMovie(movie) {
-        console.log('Selected:', movie);
-        sessionStorage.setItem('selectedMovie', JSON.stringify(movie));
-        // TODO: Update with your Django review URL
-        // window.location.href = `/review/${movie.id}/`;
-        alert(`Selected: ${movie.title}\n\nTODO: Navigate to review page`);
+// Handle keyboard events
+document.getElementById('searchInput').addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideDropdown();
     }
+});
 
-    function filterMovies() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allMovies.filter(m =>
-            m.title.toLowerCase().includes(search) ||
-            (m.name && m.name.toLowerCase().includes(search))
-        );
-        displayMovies(filtered);
-    }
-
-    async function filterByCategory(category) {
-        currentFilter = category;
-
-        // Update active tab
-        document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.className = 'filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all bg-white text-gray-700 border border-gray-300 hover:border-blue-500';
-        });
-        event.target.className = 'filter-tab px-6 py-2 rounded-full font-medium whitespace-nowrap transition-all bg-blue-600 text-white';
-
-        document.getElementById('movieGrid').classList.add('hidden');
-        document.getElementById('loadingSpinner').classList.remove('hidden');
-
-        try {
-            let endpoint = '';
-            switch(category) {
-                case 'movies':
-                    endpoint = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}`;
-                    break;
-                case 'series':
-                    endpoint = `https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_API_KEY}`;
-                    break;
-                case 'popular':
-                    endpoint = `https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_API_KEY}`;
-                    break;
-                case 'top-rated':
-                    endpoint = `https://api.themoviedb.org/3/movie/top_rated?api_key=${TMDB_API_KEY}`;
-                    break;
-                default:
-                    endpoint = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}`;
-            }
-
-            const response = await fetch(endpoint);
-            const data = await response.json();
-            allMovies = data.results;
-
-            document.getElementById('loadingSpinner').classList.add('hidden');
-            displayMovies(allMovies);
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('searchInput').addEventListener('input', handleSearchInput);
+    console.log('Search initialized'); // DEBUG
+});
 </script>
 {% endblock %}
