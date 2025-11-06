@@ -207,15 +207,18 @@ async function analyzeReview() {
             throw new Error(data.error || 'Analysis failed');
         }
 
-        displayResults(data, reviewText);
+        displayResults(data);
 
     } catch (error) {
         console.error('Analysis error:', error);
         alert('Analysis service is temporarily unavailable. Please try again later.');
+
+        // Reset on error
+        resetResults();
     }
 }
 
-function displayResults(result, reviewText) {
+function displayResults(result) {
     const sentimentBadge = document.getElementById('sentimentBadge');
     const confidenceValue = document.getElementById('confidenceValue');
     const progressFill = document.getElementById('progressFill');
@@ -254,16 +257,61 @@ function displayResults(result, reviewText) {
     }, 100);
 
     // Display both original and cleaned text
-    originalDisplay.textContent = result.original_text || reviewText;
+    originalDisplay.textContent = result.original_text || 'No original text available';
     cleanedDisplay.textContent = result.cleaned_text || 'Text processing not available';
 }
 
 function clearReview() {
+    // Clear the input field
     document.getElementById('reviewInput').value = '';
-    document.getElementById('resultSection').classList.add('hidden');
-    document.getElementById('emptyState').classList.remove('hidden');
-    document.getElementById('progressFill').style.width = '0%';
+
+    // Reset all result fields to default state
+    resetResults();
 }
+
+function resetResults() {
+    // Hide results section
+    document.getElementById('resultSection').classList.add('hidden');
+
+    // Show empty state
+    document.getElementById('emptyState').classList.remove('hidden');
+
+    // Reset progress bar
+    document.getElementById('progressFill').style.width = '0%';
+
+    // Reset sentiment badge to default
+    const sentimentBadge = document.getElementById('sentimentBadge');
+    sentimentBadge.className = 'px-6 py-3 rounded-full font-semibold text-sm flex items-center gap-2 shadow-md bg-gray-100 text-gray-700 border border-gray-200';
+    sentimentBadge.innerHTML = `
+        <span class="material-icons text-xl">sentiment_satisfied_alt</span>
+        <span id="sentimentText">Positive</span>
+    `;
+
+    // Reset confidence value
+    document.getElementById('confidenceValue').textContent = '0%';
+
+    // Clear text displays
+    document.getElementById('originalText').textContent = '';
+    document.getElementById('cleanedText').textContent = '';
+}
+
+// Add event listener for Enter key in textarea
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewInput = document.getElementById('reviewInput');
+
+    reviewInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && event.ctrlKey) {
+            // Ctrl+Enter to analyze
+            analyzeReview();
+        } else if (event.key === 'Escape') {
+            // Escape to clear
+            clearReview();
+        }
+    });
+
+    // Focus on the input when page loads
+    reviewInput.focus();
+});
 
 function getCookie(name) {
     let cookieValue = null;
