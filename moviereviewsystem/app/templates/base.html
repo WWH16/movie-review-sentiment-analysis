@@ -8,6 +8,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <style>
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-content {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .input-error {
+            border-color: #ef4444 !important;
+            animation: shake 0.3s ease-in-out;
+        }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50">
@@ -18,14 +60,445 @@
                 <span class="material-icons">movie</span>
                 MovieReview
             </a>
-            <div class="flex gap-6">
+            <div class="flex items-center gap-6">
                 <a href="{% url 'main' %}" class="text-gray-700 hover:text-primary-blue">Home</a>
                 <a href="{% url 'movies' %}" class="text-gray-700 hover:text-primary-blue">Browse Movies</a>
+
+                {% if user.is_authenticated %}
+                    <div class="flex items-center gap-4">
+                        <span class="text-gray-700 flex items-center gap-2">
+                            <span class="material-icons text-blue-600">account_circle</span>
+                            {{ user.username }}
+                        </span>
+                        <a href="{% url 'authentication:logout' %}"
+                           class="flex items-center gap-1 text-gray-700 hover:text-red-600 transition-colors">
+                            <span class="material-icons text-sm">logout</span>
+                            Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <button onclick="openLoginModal()"
+                            class="flex items-center gap-2 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-gray-900 transition-all">
+                        <span class="material-icons text-sm">person</span>
+                        Login
+                    </button>
+                {% endif %}
             </div>
         </div>
     </nav>
 
     {% block content %}{% endblock %}
+
+    <!-- Login Modal -->
+    {% if not user.is_authenticated %}
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white">Welcome back!</h2>
+                <button onclick="closeLoginModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6">
+                <!-- Error Messages Container -->
+                <div id="loginErrors" class="hidden mb-4 p-3 bg-red-900 border border-red-700 rounded-lg">
+                    <div class="flex items-start gap-2">
+                        <span class="material-icons text-red-400 text-sm mt-0.5">error</span>
+                        <div class="flex-1">
+                            <p class="text-red-200 text-sm font-medium">Login Failed</p>
+                            <p id="loginErrorText" class="text-red-300 text-sm mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Username</label>
+                        <input
+                            type="text"
+                            name="username"
+                            id="loginUsername"
+                            placeholder="Enter your username"
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Password</label>
+                        <div class="relative">
+                            <input
+                                type="password"
+                                name="password"
+                                id="loginPassword"
+                                placeholder="Enter your password"
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                required
+                            >
+                            <button type="button"
+                                    onclick="togglePassword('loginPassword', 'loginPasswordIcon')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                                <span class="material-icons text-sm" id="loginPasswordIcon">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="remember_me" class="w-4 h-4 bg-gray-800 border-gray-600 text-blue-600 rounded focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-300">Remember me</span>
+                        </label>
+                        <a href="#" class="text-sm text-green-500 hover:text-green-400 font-medium">Forgot password?</a>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="loginSubmitBtn"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-all mb-4 flex items-center justify-center gap-2"
+                    >
+                        <span id="loginBtnText">Login</span>
+                        <span id="loginSpinner" class="material-icons animate-spin hidden">refresh</span>
+                    </button>
+                </form>
+
+                <div class="text-center">
+                    <p class="text-gray-400 text-sm">
+                        Don't have an account?
+                        <a href="javascript:void(0)" onclick="switchToSignup()" class="text-green-500 hover:text-green-400 font-medium">
+                            Register
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white">Create Account</h2>
+                <button onclick="closeSignupModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6">
+                <!-- Error Messages Container -->
+                <div id="signupErrors" class="hidden mb-4 p-3 bg-red-900 border border-red-700 rounded-lg">
+                    <div class="flex items-start gap-2">
+                        <span class="material-icons text-red-400 text-sm mt-0.5">error</span>
+                        <div class="flex-1">
+                            <p class="text-red-200 text-sm font-medium">Registration Failed</p>
+                            <ul id="signupErrorList" class="text-red-300 text-sm mt-1 list-disc list-inside"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Username</label>
+                        <input
+                            type="text"
+                            name="username"
+                            id="signupUsername"
+                            placeholder="Choose a username"
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            required
+                            minlength="3"
+                        >
+                        <p class="text-gray-500 text-xs mt-1">At least 3 characters</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Email</label>
+                        <input
+                            type="email"
+                            name="email"
+                            id="signupEmail"
+                            placeholder="name@email.com"
+                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Password</label>
+                        <div class="relative">
+                            <input
+                                type="password"
+                                name="password1"
+                                id="signupPassword1"
+                                placeholder="Create a password"
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                required
+                                minlength="8"
+                            >
+                            <button type="button"
+                                    onclick="togglePassword('signupPassword1', 'signupPassword1Icon')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                                <span class="material-icons text-sm" id="signupPassword1Icon">visibility</span>
+                            </button>
+                        </div>
+                        <p class="text-gray-500 text-xs mt-1">At least 8 characters</p>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Confirm Password</label>
+                        <div class="relative">
+                            <input
+                                type="password"
+                                name="password2"
+                                id="signupPassword2"
+                                placeholder="Confirm your password"
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                required
+                            >
+                            <button type="button"
+                                    onclick="togglePassword('signupPassword2', 'signupPassword2Icon')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                                <span class="material-icons text-sm" id="signupPassword2Icon">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="signupSubmitBtn"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-all mb-4 flex items-center justify-center gap-2"
+                    >
+                        <span id="signupBtnText">Create Account</span>
+                        <span id="signupSpinner" class="material-icons animate-spin hidden">refresh</span>
+                    </button>
+                </form>
+
+                <div class="text-center">
+                    <p class="text-gray-400 text-sm">
+                        Already have an account?
+                        <a href="javascript:void(0)" onclick="switchToLogin()" class="text-green-500 hover:text-green-400 font-medium">
+                            Sign in
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal Functions
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            clearLoginErrors();
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            clearLoginErrors();
+        }
+
+        function openSignupModal() {
+            document.getElementById('signupModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            clearSignupErrors();
+        }
+
+        function closeSignupModal() {
+            document.getElementById('signupModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            clearSignupErrors();
+        }
+
+        function switchToSignup() {
+            closeLoginModal();
+            openSignupModal();
+        }
+
+        function switchToLogin() {
+            closeSignupModal();
+            openLoginModal();
+        }
+
+        // Password visibility toggle
+        function togglePassword(fieldId, iconId) {
+            const field = document.getElementById(fieldId);
+            const icon = document.getElementById(iconId);
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                field.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
+
+        // Clear error messages
+        function clearLoginErrors() {
+            document.getElementById('loginErrors').classList.add('hidden');
+            document.getElementById('loginUsername').classList.remove('input-error');
+            document.getElementById('loginPassword').classList.remove('input-error');
+        }
+
+        function clearSignupErrors() {
+            document.getElementById('signupErrors').classList.add('hidden');
+            document.getElementById('signupUsername').classList.remove('input-error');
+            document.getElementById('signupEmail').classList.remove('input-error');
+            document.getElementById('signupPassword1').classList.remove('input-error');
+            document.getElementById('signupPassword2').classList.remove('input-error');
+        }
+
+        // Show error message
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('loginErrors');
+            const errorText = document.getElementById('loginErrorText');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            errorDiv.classList.add('error-message');
+            document.getElementById('loginUsername').classList.add('input-error');
+            document.getElementById('loginPassword').classList.add('input-error');
+        }
+
+        function showSignupErrors(errors) {
+            const errorDiv = document.getElementById('signupErrors');
+            const errorList = document.getElementById('signupErrorList');
+            errorList.innerHTML = errors.map(err => `<li>${err}</li>`).join('');
+            errorDiv.classList.remove('hidden');
+            errorDiv.classList.add('error-message');
+        }
+
+        // Handle Login Form Submission
+        async function handleLogin(event) {
+            event.preventDefault();
+            clearLoginErrors();
+
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const btnText = document.getElementById('loginBtnText');
+            const spinner = document.getElementById('loginSpinner');
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.textContent = 'Logging in...';
+            spinner.classList.remove('hidden');
+
+            const formData = new FormData(event.target);
+
+            try {
+                const response = await fetch('{% url "authentication:login" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success - redirect to current page or home
+                    window.location.href = data.redirect || '{{ request.path }}';
+                } else {
+                    // Show error
+                    showLoginError(data.error || 'Invalid username or password');
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Login';
+                    spinner.classList.add('hidden');
+                }
+            } catch (error) {
+                showLoginError('An error occurred. Please try again.');
+                submitBtn.disabled = false;
+                btnText.textContent = 'Login';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Handle Signup Form Submission
+        async function handleSignup(event) {
+            event.preventDefault();
+            clearSignupErrors();
+
+            const submitBtn = document.getElementById('signupSubmitBtn');
+            const btnText = document.getElementById('signupBtnText');
+            const spinner = document.getElementById('signupSpinner');
+
+            // Client-side validation
+            const password1 = document.getElementById('signupPassword1').value;
+            const password2 = document.getElementById('signupPassword2').value;
+
+            if (password1 !== password2) {
+                showSignupErrors(['Passwords do not match']);
+                document.getElementById('signupPassword1').classList.add('input-error');
+                document.getElementById('signupPassword2').classList.add('input-error');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.textContent = 'Creating...';
+            spinner.classList.remove('hidden');
+
+            const formData = new FormData(event.target);
+
+            try {
+                const response = await fetch('{% url "authentication:signup" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success - redirect
+                    window.location.href = data.redirect || '{{ request.path }}';
+                } else {
+                    // Show errors
+                    showSignupErrors(data.errors || ['Registration failed. Please try again.']);
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Create Account';
+                    spinner.classList.add('hidden');
+                }
+            } catch (error) {
+                showSignupErrors(['An error occurred. Please try again.']);
+                submitBtn.disabled = false;
+                btnText.textContent = 'Create Account';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const loginModal = document.getElementById('loginModal');
+            const signupModal = document.getElementById('signupModal');
+
+            if (event.target === loginModal) {
+                closeLoginModal();
+            }
+            if (event.target === signupModal) {
+                closeSignupModal();
+            }
+        });
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeLoginModal();
+                closeSignupModal();
+            }
+        });
+    </script>
+    {% endif %}
 
     {% block extra_js %}{% endblock %}
 </body>
