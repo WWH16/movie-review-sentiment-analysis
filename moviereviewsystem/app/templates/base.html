@@ -48,6 +48,31 @@
             border-color: #ef4444 !important;
             animation: shake 0.3s ease-in-out;
         }
+
+        .dropdown {
+            display: none;
+        }
+
+        .dropdown.show {
+            display: block;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Add dropdown icon transition */
+        #dropdownIcon {
+            transition: transform 0.2s ease-in-out;
+        }
     </style>
 
     {% block extra_css %}{% endblock %}
@@ -65,22 +90,33 @@
                 <a href="{% url 'movies' %}" class="text-gray-700 hover:text-primary-blue">Browse Movies</a>
 
                 {% if user.is_authenticated %}
-                    <div class="flex items-center gap-4">
-                        <span class="text-gray-700 flex items-center gap-2">
+                    <!-- User Dropdown -->
+                    <div class="relative">
+                        <button onclick="toggleDropdown()"
+                                class="flex items-center gap-2 text-gray-700 hover:text-primary-blue transition-colors">
                             <span class="material-icons text-blue-600">account_circle</span>
-                            {{ user.username }}
-                        </span>
-                        <a href="{% url 'authentication:logout' %}"
-                           class="flex items-center gap-1 text-gray-700 hover:text-red-600 transition-colors">
-                            <span class="material-icons text-sm">logout</span>
-                            Logout
-                        </a>
+                            <span>{{ user.username }}</span>
+                            <span class="material-icons text-sm" id="dropdownIcon">keyboard_arrow_down</span>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown" class="dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                            <div class="px-4 py-2 border-b border-gray-200">
+                                <p class="text-xs text-gray-500">Signed in as</p>
+                                <p class="text-sm font-semibold text-gray-800 truncate">{{ user.username }}</p>
+                            </div>
+                            <a href="{% url 'authentication:logout' %}"
+                               class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+                                <span class="material-icons text-sm text-red-600">logout</span>
+                                <span>Logout</span>
+                            </a>
+                        </div>
                     </div>
                 {% else %}
                     <button onclick="openLoginModal()"
-                            class="flex items-center gap-2 bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-gray-900 transition-all">
+                            class="flex items-center gap-2 text-gray-700 hover:text-primary-blue transition-colors">
                         <span class="material-icons text-sm">person</span>
-                        Login
+                        <span>Login</span>
                     </button>
                 {% endif %}
             </div>
@@ -292,9 +328,58 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
+    <!-- MOVE THE SCRIPT BLOCK OUTSIDE THE AUTHENTICATION CHECK -->
     <script>
-        // Modal Functions
+        // User Dropdown Functions - ALWAYS LOADED
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            const icon = document.getElementById('dropdownIcon');
+
+            if (dropdown && icon) {
+                dropdown.classList.toggle('show');
+
+                // Rotate the arrow icon
+                if (dropdown.classList.contains('show')) {
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const dropdownButton = document.querySelector('.relative button');
+
+            if (dropdown && dropdownButton && !dropdown.contains(event.target) && !dropdownButton.contains(event.target)) {
+                dropdown.classList.remove('show');
+                const icon = document.getElementById('dropdownIcon');
+                if (icon) {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
+        });
+
+        // Close dropdown on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const dropdown = document.getElementById('userDropdown');
+                const icon = document.getElementById('dropdownIcon');
+
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                }
+                if (icon) {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
+        });
+
+        // Modal Functions - ONLY FOR NON-AUTHENTICATED USERS
+        {% if not user.is_authenticated %}
         function openLoginModal() {
             document.getElementById('loginModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -333,47 +418,67 @@
         function togglePassword(fieldId, iconId) {
             const field = document.getElementById(fieldId);
             const icon = document.getElementById(iconId);
-            if (field.type === 'password') {
-                field.type = 'text';
-                icon.textContent = 'visibility_off';
-            } else {
-                field.type = 'password';
-                icon.textContent = 'visibility';
+            if (field && icon) {
+                if (field.type === 'password') {
+                    field.type = 'text';
+                    icon.textContent = 'visibility_off';
+                } else {
+                    field.type = 'password';
+                    icon.textContent = 'visibility';
+                }
             }
         }
 
         // Clear error messages
         function clearLoginErrors() {
-            document.getElementById('loginErrors').classList.add('hidden');
-            document.getElementById('loginUsername').classList.remove('input-error');
-            document.getElementById('loginPassword').classList.remove('input-error');
+            const loginErrors = document.getElementById('loginErrors');
+            const loginUsername = document.getElementById('loginUsername');
+            const loginPassword = document.getElementById('loginPassword');
+
+            if (loginErrors) loginErrors.classList.add('hidden');
+            if (loginUsername) loginUsername.classList.remove('input-error');
+            if (loginPassword) loginPassword.classList.remove('input-error');
         }
 
         function clearSignupErrors() {
-            document.getElementById('signupErrors').classList.add('hidden');
-            document.getElementById('signupUsername').classList.remove('input-error');
-            document.getElementById('signupEmail').classList.remove('input-error');
-            document.getElementById('signupPassword1').classList.remove('input-error');
-            document.getElementById('signupPassword2').classList.remove('input-error');
+            const signupErrors = document.getElementById('signupErrors');
+            const signupUsername = document.getElementById('signupUsername');
+            const signupEmail = document.getElementById('signupEmail');
+            const signupPassword1 = document.getElementById('signupPassword1');
+            const signupPassword2 = document.getElementById('signupPassword2');
+
+            if (signupErrors) signupErrors.classList.add('hidden');
+            if (signupUsername) signupUsername.classList.remove('input-error');
+            if (signupEmail) signupEmail.classList.remove('input-error');
+            if (signupPassword1) signupPassword1.classList.remove('input-error');
+            if (signupPassword2) signupPassword2.classList.remove('input-error');
         }
 
         // Show error message
         function showLoginError(message) {
             const errorDiv = document.getElementById('loginErrors');
             const errorText = document.getElementById('loginErrorText');
-            errorText.textContent = message;
-            errorDiv.classList.remove('hidden');
-            errorDiv.classList.add('error-message');
-            document.getElementById('loginUsername').classList.add('input-error');
-            document.getElementById('loginPassword').classList.add('input-error');
+            const loginUsername = document.getElementById('loginUsername');
+            const loginPassword = document.getElementById('loginPassword');
+
+            if (errorDiv && errorText) {
+                errorText.textContent = message;
+                errorDiv.classList.remove('hidden');
+                errorDiv.classList.add('error-message');
+            }
+            if (loginUsername) loginUsername.classList.add('input-error');
+            if (loginPassword) loginPassword.classList.add('input-error');
         }
 
         function showSignupErrors(errors) {
             const errorDiv = document.getElementById('signupErrors');
             const errorList = document.getElementById('signupErrorList');
-            errorList.innerHTML = errors.map(err => `<li>${err}</li>`).join('');
-            errorDiv.classList.remove('hidden');
-            errorDiv.classList.add('error-message');
+
+            if (errorDiv && errorList) {
+                errorList.innerHTML = errors.map(err => `<li>${err}</li>`).join('');
+                errorDiv.classList.remove('hidden');
+                errorDiv.classList.add('error-message');
+            }
         }
 
         // Handle Login Form Submission
@@ -384,6 +489,8 @@
             const submitBtn = document.getElementById('loginSubmitBtn');
             const btnText = document.getElementById('loginBtnText');
             const spinner = document.getElementById('loginSpinner');
+
+            if (!submitBtn || !btnText || !spinner) return;
 
             // Show loading state
             submitBtn.disabled = true;
@@ -430,14 +537,16 @@
             const btnText = document.getElementById('signupBtnText');
             const spinner = document.getElementById('signupSpinner');
 
-            // Client-side validation
-            const password1 = document.getElementById('signupPassword1').value;
-            const password2 = document.getElementById('signupPassword2').value;
+            if (!submitBtn || !btnText || !spinner) return;
 
-            if (password1 !== password2) {
+            // Client-side validation
+            const password1 = document.getElementById('signupPassword1');
+            const password2 = document.getElementById('signupPassword2');
+
+            if (password1 && password2 && password1.value !== password2.value) {
                 showSignupErrors(['Passwords do not match']);
-                document.getElementById('signupPassword1').classList.add('input-error');
-                document.getElementById('signupPassword2').classList.add('input-error');
+                password1.classList.add('input-error');
+                password2.classList.add('input-error');
                 return;
             }
 
@@ -497,8 +606,8 @@
                 closeSignupModal();
             }
         });
+        {% endif %}
     </script>
-    {% endif %}
 
     {% block extra_js %}{% endblock %}
 </body>
