@@ -8,6 +8,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary-blue': '#1a73e8',
+                        'secondary-blue': '#4285f4',
+                        'accent-blue': '#185abc',
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         .modal-backdrop {
             backdrop-filter: blur(4px);
@@ -73,6 +92,11 @@
         #dropdownIcon {
             transition: transform 0.2s ease-in-out;
         }
+
+        /* Ensure Poppins font is applied globally */
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
     </style>
 
     {% block extra_css %}{% endblock %}
@@ -81,19 +105,25 @@
     <!-- Navbar -->
     <nav class="bg-white shadow-md border-b border-gray-200">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="{% url 'main' %}" class="flex items-center gap-2 text-xl font-bold text-primary-blue">
-                <span class="material-icons">movie</span>
+            <a href="{% url 'main' %}" class="flex items-center gap-2 text-xl font-bold text-primary-blue hover:text-accent-blue transition-colors duration-200">
+                <span class="material-icons text-primary-blue">movie</span>
                 MovieReview
             </a>
             <div class="flex items-center gap-6">
-                <a href="{% url 'main' %}" class="text-gray-700 hover:text-primary-blue">Home</a>
-                <a href="{% url 'movies' %}" class="text-gray-700 hover:text-primary-blue">Browse Movies</a>
+                <a href="{% url 'main' %}" class="text-gray-700 hover:text-primary-blue transition-colors duration-200 flex items-center gap-1">
+                    <span class="material-icons text-sm">home</span>
+                    Home
+                </a>
+                <a href="{% url 'movies' %}" class="text-gray-700 hover:text-primary-blue transition-colors duration-200 flex items-center gap-1">
+                    <span class="material-icons text-sm">theaters</span>
+                    Browse Movies
+                </a>
 
                 {% if user.is_authenticated %}
                     <!-- User Dropdown -->
                     <div class="relative">
                         <button onclick="toggleDropdown()"
-                                class="flex items-center gap-2 text-gray-700 hover:text-primary-blue transition-colors">
+                                class="flex items-center gap-2 text-gray-700 hover:text-primary-blue transition-colors duration-200">
                             <span class="material-icons text-blue-600">account_circle</span>
                             <span>{{ user.username }}</span>
                             <span class="material-icons text-sm" id="dropdownIcon">keyboard_arrow_down</span>
@@ -114,7 +144,7 @@
                     </div>
                 {% else %}
                     <button onclick="openLoginModal()"
-                            class="flex items-center gap-2 text-gray-700 hover:text-primary-blue transition-colors">
+                            class="flex items-center gap-2 text-gray-700 hover:text-primary-blue transition-colors duration-200">
                         <span class="material-icons text-sm">person</span>
                         <span>Login</span>
                     </button>
