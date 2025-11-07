@@ -158,11 +158,11 @@
     <!-- Login Modal -->
     {% if not user.is_authenticated %}
     <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50 flex items-center justify-center p-4">
-        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-md w-full">
             <!-- Modal Header -->
-            <div class="flex justify-between items-center p-6 border-b border-gray-700">
-                <h2 class="text-2xl font-bold text-white">Welcome back!</h2>
-                <button onclick="closeLoginModal()" class="text-gray-400 hover:text-white transition-colors">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800">Welcome back!</h2>
+                <button onclick="closeLoginModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <span class="material-icons">close</span>
                 </button>
             </div>
@@ -170,12 +170,12 @@
             <!-- Modal Body -->
             <div class="p-6">
                 <!-- Error Messages Container -->
-                <div id="loginErrors" class="hidden mb-4 p-3 bg-red-900 border border-red-700 rounded-lg">
+                <div id="loginErrors" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <div class="flex items-start gap-2">
-                        <span class="material-icons text-red-400 text-sm mt-0.5">error</span>
+                        <span class="material-icons text-red-500 text-sm mt-0.5">error</span>
                         <div class="flex-1">
-                            <p class="text-red-200 text-sm font-medium">Login Failed</p>
-                            <p id="loginErrorText" class="text-red-300 text-sm mt-1"></p>
+                            <p class="text-red-700 text-sm font-medium">Login Failed</p>
+                            <p id="loginErrorText" class="text-red-600 text-sm mt-1"></p>
                         </div>
                     </div>
                 </div>
@@ -184,31 +184,31 @@
                     {% csrf_token %}
 
                     <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Username</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
                         <input
                             type="text"
                             name="username"
                             id="loginUsername"
                             placeholder="Enter your username"
-                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            class="w-full px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-primary-blue focus:border-primary-blue outline-none transition-all"
                             required
                         >
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Password</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                         <div class="relative">
                             <input
                                 type="password"
                                 name="password"
                                 id="loginPassword"
                                 placeholder="Enter your password"
-                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                class="w-full px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-primary-blue focus:border-primary-blue outline-none transition-all"
                                 required
                             >
                             <button type="button"
                                     onclick="togglePassword('loginPassword', 'loginPasswordIcon')"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                 <span class="material-icons text-sm" id="loginPasswordIcon">visibility</span>
                             </button>
                         </div>
@@ -216,16 +216,16 @@
 
                     <div class="flex items-center justify-between mb-6">
                         <label class="flex items-center">
-                            <input type="checkbox" name="remember_me" class="w-4 h-4 bg-gray-800 border-gray-600 text-blue-600 rounded focus:ring-blue-500">
-                            <span class="ml-2 text-sm text-gray-300">Remember me</span>
+                            <input type="checkbox" name="remember_me" class="w-4 h-4 bg-white border-gray-300 text-primary-blue rounded focus:ring-primary-blue">
+                            <span class="ml-2 text-sm text-gray-600">Remember me</span>
                         </label>
-                        <a href="#" class="text-sm text-green-500 hover:text-green-400 font-medium">Forgot password?</a>
+                        <a href="#" class="text-sm text-primary-blue hover:text-accent-blue font-medium">Forgot password?</a>
                     </div>
 
                     <button
                         type="submit"
                         id="loginSubmitBtn"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-all mb-4 flex items-center justify-center gap-2"
+                        class="w-full bg-primary-blue hover:bg-accent-blue text-white font-semibold py-3 rounded-lg transition-all mb-4 flex items-center justify-center gap-2"
                     >
                         <span id="loginBtnText">Login</span>
                         <span id="loginSpinner" class="material-icons animate-spin hidden">refresh</span>
@@ -233,9 +233,9 @@
                 </form>
 
                 <div class="text-center">
-                    <p class="text-gray-400 text-sm">
+                    <p class="text-gray-600 text-sm">
                         Don't have an account?
-                        <a href="javascript:void(0)" onclick="switchToSignup()" class="text-green-500 hover:text-green-400 font-medium">
+                        <a href="javascript:void(0)" onclick="switchToSignup()" class="text-primary-blue hover:text-accent-blue font-medium">
                             Register
                         </a>
                     </p>
@@ -246,11 +246,11 @@
 
     <!-- Signup Modal -->
     <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden z-50 flex items-center justify-center p-4">
-        <div class="modal-content bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <!-- Modal Header -->
-            <div class="flex justify-between items-center p-6 border-b border-gray-700">
-                <h2 class="text-2xl font-bold text-white">Create Account</h2>
-                <button onclick="closeSignupModal()" class="text-gray-400 hover:text-white transition-colors">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
+                <button onclick="closeSignupModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <span class="material-icons">close</span>
                 </button>
             </div>
@@ -258,12 +258,12 @@
             <!-- Modal Body -->
             <div class="p-6">
                 <!-- Error Messages Container -->
-                <div id="signupErrors" class="hidden mb-4 p-3 bg-red-900 border border-red-700 rounded-lg">
+                <div id="signupErrors" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <div class="flex items-start gap-2">
-                        <span class="material-icons text-red-400 text-sm mt-0.5">error</span>
+                        <span class="material-icons text-red-500 text-sm mt-0.5">error</span>
                         <div class="flex-1">
-                            <p class="text-red-200 text-sm font-medium">Registration Failed</p>
-                            <ul id="signupErrorList" class="text-red-300 text-sm mt-1 list-disc list-inside"></ul>
+                            <p class="text-red-700 text-sm font-medium">Registration Failed</p>
+                            <ul id="signupErrorList" class="text-red-600 text-sm mt-1 list-disc list-inside"></ul>
                         </div>
                     </div>
                 </div>
@@ -272,13 +272,13 @@
                     {% csrf_token %}
 
                     <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Username</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
                         <input
                             type="text"
                             name="username"
                             id="signupUsername"
                             placeholder="Choose a username"
-                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            class="w-full px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-primary-blue focus:border-primary-blue outline-none transition-all"
                             required
                             minlength="3"
                         >
@@ -286,32 +286,32 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Email</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                         <input
                             type="email"
                             name="email"
                             id="signupEmail"
                             placeholder="name@email.com"
-                            class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            class="w-full px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-primary-blue focus:border-primary-blue outline-none transition-all"
                             required
                         >
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Password</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                         <div class="relative">
                             <input
                                 type="password"
                                 name="password1"
                                 id="signupPassword1"
                                 placeholder="Create a password"
-                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                class="w-full px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-primary-blue focus:border-primary-blue outline-none transition-all"
                                 required
                                 minlength="8"
                             >
                             <button type="button"
                                     onclick="togglePassword('signupPassword1', 'signupPassword1Icon')"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                 <span class="material-icons text-sm" id="signupPassword1Icon">visibility</span>
                             </button>
                         </div>
@@ -319,19 +319,19 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Confirm Password</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                         <div class="relative">
                             <input
                                 type="password"
                                 name="password2"
                                 id="signupPassword2"
                                 placeholder="Confirm your password"
-                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                class="w-full px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg focus:ring-2 focus:ring-primary-blue focus:border-primary-blue outline-none transition-all"
                                 required
                             >
                             <button type="button"
                                     onclick="togglePassword('signupPassword2', 'signupPassword2Icon')"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                 <span class="material-icons text-sm" id="signupPassword2Icon">visibility</span>
                             </button>
                         </div>
@@ -340,7 +340,7 @@
                     <button
                         type="submit"
                         id="signupSubmitBtn"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-all mb-4 flex items-center justify-center gap-2"
+                        class="w-full bg-primary-blue hover:bg-accent-blue text-white font-semibold py-3 rounded-lg transition-all mb-4 flex items-center justify-center gap-2"
                     >
                         <span id="signupBtnText">Create Account</span>
                         <span id="signupSpinner" class="material-icons animate-spin hidden">refresh</span>
@@ -348,9 +348,9 @@
                 </form>
 
                 <div class="text-center">
-                    <p class="text-gray-400 text-sm">
+                    <p class="text-gray-600 text-sm">
                         Already have an account?
-                        <a href="javascript:void(0)" onclick="switchToLogin()" class="text-green-500 hover:text-green-400 font-medium">
+                        <a href="javascript:void(0)" onclick="switchToLogin()" class="text-primary-blue hover:text-accent-blue font-medium">
                             Sign in
                         </a>
                     </p>
